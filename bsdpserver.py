@@ -142,8 +142,9 @@ try:
         serverhostname = externalip
         serverip = map(int, externalip.split('.'))
         serverip_str = externalip
-        logging.debug('Found $DOCKER_BSDPY_IP - using custom external IP %s'
-                        % externalip)
+        logging.debug(
+            f'Found $DOCKER_BSDPY_IP - using custom external IP {serverip_str}'
+        )
     elif 'darwin' in platform:
         from netifaces import ifaddresses
         logging.debug('Running on OS X, using alternate netifaces method')
@@ -156,8 +157,9 @@ try:
         serverhostname = myip
         serverip = map(int, myip.split('.'))
         serverip_str = myip
-        logging.debug('No BSDPY_IP env var found, using IP from %s interface'
-                        % serverinterface)
+        logging.debug(
+            f'No BSDPY_IP env var found, using IP from {serverinterface} interface'
+        )
     if 'http' in bootproto:
         if os.environ.get('DOCKER_BSDPY_NBI_URL'):
             nbiurl = urlparse(os.environ.get('DOCKER_BSDPY_NBI_URL'))
@@ -168,27 +170,57 @@ try:
                 socket.inet_aton(nbiurlhostname)
             except socket.error:
                 nbiurlhostname = socket.gethostbyname(nbiurlhostname)
-                logging.debug('Resolving hostname to IP - %s -> %s' % (nbiurl.hostname, nbiurlhostname))
+                logging.debug(
+                    f'Resolving hostname to IP - {nbiurl.hostname} -> {nbiurlhostname}'
+                )
 
-            basedmgpath = 'http://%s%s/' % (nbiurlhostname, nbiurl.path)
-            logging.debug('Found DOCKER_BSDPY_NBI_URL - using basedmgpath %s' % basedmgpath)
+            basedmgpath = f'http://{nbiurlhostname}{nbiurl.path}/'
+            logging.debug(f'Found DOCKER_BSDPY_NBI_URL - using basedmgpath {basedmgpath}')
         else:
-            basedmgpath = 'http://' + serverip_str + '/'
-            logging.debug('Using HTTP basedmgpath %s' % basedmgpath)
+            basedmgpath = f'http://{serverip_str}/'
+            logging.debug(f'Using HTTP basedmgpath {basedmgpath}')
     if 'nfs' in bootproto:
-        basedmgpath = 'nfs:' + serverip_str + ':' + tftprootpath + ':'
-        logging.debug('Using NFS basedmgpath %s' % basedmgpath)
-    logging.debug('Server IP: ' + serverip_str + '\n' +
-                  'Server FQDN: ' + serverhostname + '\n' +
-                  'Serving on ' + serverinterface + '\n' +
-                  'Using ' + bootproto + ' to serve boot image.\n')
+        basedmgpath = f'nfs:{serverip_str}:{tftprootpath}:'
+        logging.debug(f'Using NFS basedmgpath {basedmgpath}')
+    logging.debug(
+        (
+            (
+                (
+                    (
+                        (
+                            (
+                                (
+                                    (
+                                        (
+                                            f'Server IP: {serverip_str}'
+                                            + '\n'
+                                            + 'Server FQDN: '
+                                        )
+                                        + serverhostname
+                                    )
+                                    + '\n'
+                                )
+                                + 'Serving on '
+                            )
+                            + serverinterface
+                        )
+                        + '\n'
+                    )
+                    + 'Using '
+                )
+                + bootproto
+            )
+            + ' to serve boot image.\n'
+        )
+    )
 except:
-    logging.debug('Error setting serverip, serverhostname or basedmgpath %s' %
-                    sys.exc_info()[1])
+    logging.debug(
+        f'Error setting serverip, serverhostname or basedmgpath {sys.exc_info()[1]}'
+    )
     raise
 
 
-def getBaseDmgPath(nbiurl) :
+def getBaseDmgPath(nbiurl):
 
     logging.debug('*********\nRefreshing basedmgpath because DOCKER_BSDPY_NBI_URL uses hostname, not IP')
     if 'http' in bootproto:
@@ -200,17 +232,19 @@ def getBaseDmgPath(nbiurl) :
                 socket.inet_aton(nbiurlhostname)
             except socket.error:
                 nbiurlhostname = socket.gethostbyname(nbiurlhostname)
-                logging.debug('Resolving hostname to IP - %s -> %s' % (nbiurl.hostname, nbiurlhostname))
+                logging.debug(
+                    f'Resolving hostname to IP - {nbiurl.hostname} -> {nbiurlhostname}'
+                )
 
-            basedmgpath = 'http://%s%s/' % (nbiurlhostname, nbiurl.path)
+            basedmgpath = f'http://{nbiurlhostname}{nbiurl.path}/'
             logging.debug('Found DOCKER_BSDPY_NBI_URL - using basedmgpath %s\n*********\n' % basedmgpath)
         else:
-            basedmgpath = 'http://' + serverip_str + '/'
+            basedmgpath = f'http://{serverip_str}/'
             logging.debug('Using HTTP basedmgpath %s\n*********\n' % basedmgpath)
 
     if 'nfs' in bootproto:
-        basedmgpath = 'nfs:' + serverip_str + ':' + tftprootpath + ':'
-        logging.debug('Using NFS basedmgpath %s' % basedmgpath)
+        basedmgpath = f'nfs:{serverip_str}:{tftprootpath}:'
+        logging.debug(f'Using NFS basedmgpath {basedmgpath}')
 
     return basedmgpath
 
@@ -256,16 +290,18 @@ def find(pattern, path):
     """
     result = []
     for root, dirs, files in os.walk(path):
-        for name in files:
-            if fnmatch.fnmatch(name, pattern):
-                result.append(os.path.join(root, name))
+        result.extend(
+            os.path.join(root, name)
+            for name in files
+            if fnmatch.fnmatch(name, pattern)
+        )
     return result
 
 
 def chaddr_to_mac(chaddr):
     """Convert the chaddr data from a DhcpPacket Option to a hex string
     of the form '12:34:56:ab:cd:ef'"""
-    return ":".join(hex(i)[2:] for i in chaddr[0:6])
+    return ":".join(hex(i)[2:] for i in chaddr[:6])
 
 
 def getNbiOptions(incoming):
@@ -290,7 +326,7 @@ def getNbiOptions(incoming):
                 del dirs[:]
 
                 # Search the path for an NBImageInfo.plist and parse it.
-                logging.debug('Considering NBI source at ' + str(path))
+                logging.debug(f'Considering NBI source at {str(path)}')
                 nbimageinfoplist = find('NBImageInfo.plist', path)[0]
                 nbimageinfo = plistlib.readPlist(nbimageinfoplist)
 
@@ -307,12 +343,12 @@ def getNbiOptions(incoming):
                 #   name = The name of the NBI
 
                 if nbimageinfo['Index'] == 0:
-                    logging.debug('Image "%s" Index is NULL (0), skipping!'
-                                    % nbimageinfo['Name'])
+                    logging.debug(
+                        f"""Image "{nbimageinfo['Name']}" Index is NULL (0), skipping!"""
+                    )
                     continue
                 elif nbimageinfo['IsEnabled'] is False:
-                    logging.debug('Image "%s" is disabled, skipping.'
-                                    % nbimageinfo['Name'])
+                    logging.debug(f"""Image "{nbimageinfo['Name']}" is disabled, skipping.""")
                     continue
                 else:
                     thisnbi['id'] = nbimageinfo['Index']
@@ -350,8 +386,7 @@ def getNbiOptions(incoming):
                 # Found an eligible NBI source, add it to our nbisources list
                 nbisources.append(path)
     except:
-        logging.debug("Unexpected error getNbiOptions: %s" %
-                        sys.exc_info()[1])
+        logging.debug(f"Unexpected error getNbiOptions: {sys.exc_info()[1]}")
         raise
 
     return nbioptions, nbisources
@@ -393,13 +428,11 @@ def getSysIdEntitlement(nbisources, clientsysid, clientmacaddr, bsdpmsgtype):
     global imagenameslist
     global hasdefault
 
-    logging.debug('Determining image list for system ID ' + clientsysid)
+    logging.debug(f'Determining image list for system ID {clientsysid}')
 
-    # Initialize lists for nbientitlements and imagenameslist, both will
-    #   contain a series of dicts
-    nbientitlements = []
     imagenameslist = []
 
+    nbientitlements = []
     try:
         # Iterate over the NBI list
         for thisnbi in nbisources:
@@ -423,9 +456,11 @@ def getSysIdEntitlement(nbisources, clientsysid, clientmacaddr, bsdpmsgtype):
                 # skip this image if this client's MAC is not in the list.
                 if thisnbi['enabledmacaddrs'] and \
                     clientmacaddr not in thisnbi['enabledmacaddrs']:
-                    logging.debug('MAC address ' + clientmacaddr + ' is not '
-                                  'in the enabled MAC list - skipping "' +
-                                  thisnbi['description'] + '"')
+                    logging.debug(
+                        f'MAC address {clientmacaddr} is not in the enabled MAC list - skipping "'
+                        + thisnbi['description']
+                        + '"'
+                    )
                     continue
 
                 if len(thisnbi['disabledsysids']) == 0 and \
@@ -434,25 +469,32 @@ def getSysIdEntitlement(nbisources, clientsysid, clientmacaddr, bsdpmsgtype):
                             '" has no restrictions, adding to list')
                     nbientitlements.append(thisnbi)
 
-                # Check for a missing entry in enabledsysids, this means we skip
                 elif clientsysid in thisnbi['disabledsysids']:
-                    logging.debug('System ID "' + clientsysid + '" is disabled'
-                                    ' - skipping "' + thisnbi['description'] + '"')
+                    logging.debug(
+                        f'System ID "{clientsysid}" is disabled - skipping "'
+                        + thisnbi['description']
+                        + '"'
+                    )
 
-                # Check for an entry in enabledsysids
-                elif clientsysid not in thisnbi['enabledsysids'] or \
-                     (clientsysid in thisnbi['enabledsysids'] and
-                     clientsysid not in thisnbi['disabledsysids']):
-                    logging.debug('Found enabled system ID ' + clientsysid +
-                          ' - adding "' + thisnbi['description'] + '" to list')
+                else:
+                    logging.debug(
+                        f'Found enabled system ID {clientsysid} - adding "'
+                        + thisnbi['description']
+                        + '" to list'
+                    )
                     nbientitlements.append(thisnbi)
 
     except:
-        logging.debug("Unexpected error filtering image entitlements: %s" %
-                        sys.exc_info()[1])
+        logging.debug(
+            f"Unexpected error filtering image entitlements: {sys.exc_info()[1]}"
+        )
         raise
 
     try:
+        # Our skip interval within the list; the "[129,0]" header each image
+        #   ID requires, we don't want to count it for the length
+        n = 2
+
         # Now we iterate through the entitled NBIs in search of a default
         #   image, as determined by its "IsDefault" key
         for image in nbientitlements:
@@ -471,14 +513,8 @@ def getSysIdEntitlement(nbisources, clientsysid, clientmacaddr, bsdpmsgtype):
                     # logging.debug('Setting default image ID ' + str(defaultnbi))
                     # logging.debug('hasdefault is: ' + str(hasdefault))
 
-            # This is to match cases where there is  no default image found,
-            #   a possibility. In that case we use the highest found id as the
-            #   default. This too could be changed at a later time.
             elif not hasdefault:
-                if defaultnbi < image['id']:
-                    defaultnbi = image['id']
-                    # logging.debug('Changing default image ID ' + str(defaultnbi))
-
+                defaultnbi = max(defaultnbi, image['id'])
             # Next we construct our imagenameslist which is a list of ints that
             #   encodes the image id, total name length and its name for use
             #   by the packet encoder
@@ -487,10 +523,6 @@ def getSysIdEntitlement(nbisources, clientsysid, clientmacaddr, bsdpmsgtype):
             #   ints
             imageid = '%04X' % image['id']
 
-            # Our skip interval within the list; the "[129,0]" header each image
-            #   ID requires, we don't want to count it for the length
-            n = 2
-
             # Construct the list by iterating over the imageid, converting to a
             #   16 bit string as we go, for proper packet encoding
             imageid = [int(imageid[i:i+n], 16) \
@@ -498,8 +530,7 @@ def getSysIdEntitlement(nbisources, clientsysid, clientmacaddr, bsdpmsgtype):
             imagenameslist += [129,0] + imageid + [image['length']] + \
                               strlist(image['name']).list()
     except:
-        logging.debug("Unexpected error setting default image: %s" %
-                        sys.exc_info()[1])
+        logging.debug(f"Unexpected error setting default image: {sys.exc_info()[1]}")
         raise
 
     # print 'Entitlements: ' + str(len(nbientitlements)) + '\n' + str(nbientitlements) + '\n'
